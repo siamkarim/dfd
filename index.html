@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Flow Diagrams - mieAPI_cem</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.5em;
+        }
+        h2 {
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 40px 0 20px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            font-size: 1.8em;
+        }
+        .diagram-container {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .diagram-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        .diagram-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .mermaid {
+            text-align: center;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        nav {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        nav a {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        nav a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .data-dictionary {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .data-dictionary table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .data-dictionary th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .data-dictionary td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .data-dictionary tr:hover {
+            background: #f5f5f5;
+        }
+        .notes {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .notes h3 {
+            margin-top: 0;
+            color: #f57c00;
+        }
+        .notes ul {
+            margin: 10px 0;
+        }
+        .notes li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 mieAPI_cem CRM System - Data Flow Diagrams</h1>
+    
+    <nav>
+        <a href="#system-architecture">System Architecture</a>
+        <a href="#diagram-1">Main API Flow</a>
+        <a href="#diagram-2">Auth Flow</a>
+        <a href="#diagram-3">Database Flow</a>
+        <a href="#diagram-4">Event Listeners</a>
+        <a href="#diagram-5">Background Tasks</a>
+        <a href="#diagram-6">Redis Subscribers</a>
+        <a href="#diagram-7">Socket.IO</a>
+        <a href="#diagram-8">System Architecture</a>
+        <a href="#diagram-9">File Upload</a>
+        <a href="#diagram-10">Lead Creation</a>
+        <a href="#lead-module">Lead Module DFD</a>
+    </nav>
+
+    <h2 id="system-architecture">🏗️ System Architecture</h2>
+
+    <div class="diagram-container" id="diagram-1">
+        <div class="diagram-title">1. Main API Request Flow (Standard CRUD Operations)</div>
+        <div class="mermaid">
+graph TD
+    A[Client/Frontend] -->|HTTP Request<br/>POST/GET/PUT/DELETE| B[FastAPI App<br/>main.py]
+    B -->|Route Matching| C[Router<br/>app/routers/]
+    C -->|Dependency Injection| D{Auth & Permission<br/>Check}
+    D -->|verify_token| E[Auth Service<br/>External API]
+    E -->|User Info| D
+    D -->|has_permission| F{User Has<br/>Permission?}
+    F -->|No| G[403 Forbidden<br/>Response]
+    F -->|Yes| H[Router Endpoint<br/>Function]
+    H -->|Schema Validation| I[Pydantic Schema<br/>app/schemas/]
+    I -->|Validated Data| J[Database Router<br/>app/routers/db/]
+    J -->|Business Logic| K[SQLAlchemy Session<br/>get_db dependency]
+    K -->|ORM Queries| L[(PostgreSQL<br/>Database)]
+    L -->|Query Results| K
+    K -->|ORM Models| J
+    J -->|Response Data| I
+    I -->|Serialized Response| H
+    H -->|JSON Response| B
+    B -->|HTTP Response| A
+
+    L -.->|Triggers Events| M[SQLAlchemy Listeners<br/>app/listeners/]
+    M -.->|Creates Timeline| N[LeadTimeline<br/>Model]
+    N -.->|Saved| L
+
+    J -.->|Async Task| O[Celery Task Queue]
+    O -.->|Background Processing| P[Tasks<br/>app/tasks/]
+    P -.->|Send Email/Notification| Q[Email Service<br/>External]
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#e1ffe1
+    style D fill:#ffe1f5
+    style L fill:#f5e1ff
+    style O fill:#fff5e1
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-2">
+        <div class="diagram-title">2. Authentication & Authorization Flow</div>
+        <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant FastAPI
+    participant Router
+    participant Auth Dependency
+    participant Auth Service
+    participant Permission Check
+    participant Endpoint
+
+    Client->>FastAPI: HTTP Request with Authorization Header
+    FastAPI->>Router: Route to endpoint
+    Router->>Auth Dependency: Depends(has_permission("permission_name"))
+    Auth Dependency->>Auth Dependency: Extract Authorization header
+    Auth Dependency->>Auth Service: GET /verify (with token)
+    Auth Service-->>Auth Dependency: User object + permissions
+    Auth Dependency->>Permission Check: Check if permission exists
+    alt User is superadmin
+        Permission Check-->>Auth Dependency: Allow (has all permissions)
+    else User has required permission
+        Permission Check-->>Auth Dependency: Allow
+    else User lacks permission
+        Permission Check-->>Auth Dependency: Deny
+        Auth Dependency-->>Client: 403 Forbidden
+    end
+    Auth Dependency-->>Router: User object (if allowed)
+    Router->>Endpoint: Execute endpoint with user context
+    Endpoint-->>Client: Response
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-3">
+        <div class="diagram-title">3. Database Operation Flow</div>
+        <div class="mermaid">
+graph LR
+    A[Router Endpoint] -->|Calls| B[Database Router Function<br/>app/routers/db/]
+    B -->|Gets Session| C[get_db Dependency]
+    C -->|Yields| D[SessionLocal<br/>SQLAlchemy Session]
+    D -->|Uses| E[ORM Models<br/>app/models/]
+    E -->|Mapped to| F[(PostgreSQL<br/>Tables)]
+
+    B -->|Creates| G[Model Instance]
+    B -->|Queries| H[Query Builder]
+    B -->|Updates| I[Existing Instance]
+    B -->|Deletes| J[Instance]
+
+    G -->|db.add| D
+    I -->|db.merge| D
+    J -->|db.delete| D
+    H -->|db.query| D
+
+    D -->|commit| K[Transaction Commit]
+    K -->|Triggers| L[SQLAlchemy Events]
+    L -->|after_insert<br/>before_flush<br/>after_update| M[Event Listeners<br/>app/listeners/]
+
+    M -->|Creates| N[Timeline Entries]
+    M -->|Logs Changes| O[Change Tracking]
+
+    K -->|Returns| P[Model Instance]
+    P -->|Convert to| Q[Pydantic Schema]
+    Q -->|Returns| A
+
+    style F fill:#e1f5ff
+    style D fill:#fff4e1
+    style M fill:#ffe1f5
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-4">
+        <div class="diagram-title">4. Event Listeners Flow (SQLAlchemy Events)</div>
+        <div class="mermaid">
+graph TD
+    A[Database Operation<br/>db.commit] -->|Triggers| B[SQLAlchemy Events]
+
+    B -->|after_insert| C[Lead Creation Listener<br/>listeners/lead.py]
+    B -->|before_flush| D[Field Change Tracker<br/>listeners/lead.py]
+    B -->|after_update| E[Update Listener]
+
+    C -->|Creates| F[Initial Timeline Entry]
+    C -->|Logs All Fields| G[Field Timeline Entries]
+    F -->|Saves| H[(LeadTimeline Table)]
+    G -->|Saves| H
+
+    D -->|Tracks| I[Field Changes<br/>get_history]
+    I -->|Creates| J[Edit Timeline Entry]
+    J -->|Logs| K[Old Value → New Value]
+    K -->|Saves| H
+
+    H -->|Queryable via| L[Timeline API]
+    L -->|Shows| M[Activity History]
+
+    style B fill:#fff4e1
+    style H fill:#e1f5ff
+    style C fill:#ffe1f5
+    style D fill:#ffe1f5
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-5">
+        <div class="diagram-title">5. Background Tasks Flow (Celery)</div>
+        <div class="mermaid">
+graph TD
+    A[Router/Database Router] -->|Calls Task| B[Celery Task<br/>app/tasks/]
+    B -->|Queues| C[Redis/Celery Broker]
+    C -->|Distributes| D[Celery Worker]
+    D -->|Executes| E[Task Function]
+
+    E -->|Email Task| F[email.py<br/>send_notification_email]
+    E -->|Notification Task| G[instant_notification.py]
+    E -->|Periodic Task| H[periodic_notification.py]
+
+    F -->|Uses| I[Email Utils<br/>app/utils/email.py]
+    I -->|Calls| J[Email Service API<br/>External]
+
+    G -->|Creates| K[Notification Record]
+    K -->|Saved to| L[(Notification Table)]
+
+    H -->|Scheduled| M[Cron-like Schedule]
+    M -->|Runs Periodically| E
+
+    N[Client] -.->|Poll/WebSocket| O[Notification Status]
+    O -.->|Returns| N
+
+    style C fill:#e1f5ff
+    style D fill:#fff4e1
+    style J fill:#ffe1f5
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-6">
+        <div class="diagram-title">6. Redis Subscribers Flow (Event Synchronization)</div>
+        <div class="mermaid">
+graph TD
+    A[FastAPI Startup] -->|Creates Tasks| B[Subscriber Tasks]
+    B -->|Subscribes| C[Redis Pub/Sub]
+
+    C -->|User Channel| D[User Subscriber<br/>subscriber/user.py]
+    C -->|Partner Channel| E[Partner Subscriber<br/>subscriber/partner.py]
+    C -->|Company Channel| F[Company Subscriber<br/>subscriber/company.py]
+    C -->|Region Channel| G[Region Subscriber<br/>subscriber/region.py]
+    C -->|Branch Channel| H[Branch Subscriber<br/>subscriber/branch.py]
+
+    I[Auth Service] -->|Publishes Events| C
+
+    D -->|User Created/Updated| J[Sync User Data]
+    E -->|Partner Changed| K[Sync Partner Data]
+    F -->|Company Changed| L[Sync Company Data]
+    G -->|Region Changed| M[Sync Region Data]
+    H -->|Branch Changed| N[Sync Branch Data]
+
+    J -->|Updates| O[(CRMUser Table)]
+    K -->|Updates| P[(CRMPartner Table)]
+    L -->|Updates| Q[(CRMCompany Table)]
+    M -->|Updates| R[(CRMRegion Table)]
+    N -->|Updates| S[(CRMBranch Table)]
+
+    style C fill:#e1f5ff
+    style I fill:#ffe1f5
+    style O fill:#fff4e1
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-7">
+        <div class="diagram-title">7. Socket.IO Real-time Communication Flow</div>
+        <div class="mermaid">
+graph TD
+    A[Client] -->|WebSocket Connection| B[Socket.IO Server<br/>core/socketio_server.py]
+    B -->|on connect| C[Authenticate Connection]
+    C -->|Verify Token| D[Auth Service]
+    D -->|User Info| C
+    C -->|Authorized| E[Emit Welcome]
+    E -->|to Client| A
+
+    A -->|join_lead_room| F[Join Room Handler]
+    F -->|Query Database| G[(PostgreSQL)]
+    G -->|Verify Access| H{Has Permission?}
+    H -->|Yes| I[Add to Room]
+    H -->|No| J[Reject Join]
+    I -->|Success| A
+    J -->|Error| A
+
+    K[Server Event] -->|Emit to Room| B
+    B -->|Broadcast| L[All Clients in Room]
+    L -->|Receive| A
+
+    M[Query Message] -->|Triggers| N[Socket Event]
+    N -->|Emit| B
+    B -->|Real-time Update| A
+
+    style B fill:#e1f5ff
+    style G fill:#fff4e1
+    style D fill:#ffe1f5
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-8">
+        <div class="diagram-title">8. Complete System Architecture Flow</div>
+        <div class="mermaid">
+graph TB
+    subgraph Client["Client Layer"]
+        A[Web Frontend]
+        B[Mobile App]
+    end
+
+    subgraph Gateway["API Gateway"]
+        C[FastAPI Application<br/>main.py]
+    end
+
+    subgraph Routing["Routing Layer"]
+        D[Routers<br/>app/routers/]
+        E[DB Routers<br/>app/routers/db/]
+    end
+
+    subgraph Business["Business Logic"]
+        F[Schemas<br/>app/schemas/]
+        G[Utils<br/>app/utils/]
+    end
+
+    subgraph Data["Data Layer"]
+        H[Models<br/>app/models/]
+        I[(PostgreSQL Database)]
+    end
+
+    subgraph Auth["Authentication"]
+        J[Auth Dependency<br/>dependencies/auth.py]
+        K[Permission Check<br/>dependencies/permission.py]
+        L[External Auth Service]
+    end
+
+    subgraph Background["Background Processing"]
+        M[Celery Tasks<br/>app/tasks/]
+        N[Redis Broker]
+        O[Celery Workers]
+    end
+
+    subgraph Events["Event System"]
+        P[SQLAlchemy Listeners<br/>app/listeners/]
+        Q[Redis Subscribers<br/>app/subscriber/]
+    end
+
+    subgraph Realtime["Real-time"]
+        R[Socket.IO Server<br/>core/socketio_server.py]
+    end
+
+    subgraph External["External Services"]
+        S[Email Service]
+        T[Auth Service]
+        U[S3 Storage]
+    end
+
+    A --> C
+    B --> C
+    C --> D
+    D --> J
+    J --> L
+    J --> K
+    K --> E
+    E --> F
+    E --> H
+    H --> I
+    I --> P
+    P --> I
+    E --> M
+    M --> N
+    N --> O
+    O --> S
+    E --> G
+    G --> U
+    Q --> N
+    T --> Q
+    C --> R
+    R --> A
+
+    style C fill:#fff4e1
+    style I fill:#e1f5ff
+    style L fill:#ffe1f5
+    style N fill:#e1ffe1
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-9">
+        <div class="diagram-title">9. File Upload Flow</div>
+        <div class="mermaid">
+graph TD
+    A[Client] -->|Multipart Form Data| B[Router Endpoint]
+    B -->|UploadFile| C[File Parser<br/>dependencies/parse.py]
+    C -->|Extracts Files| D[Uploaded Files List]
+    D -->|Validates| E[File Validation]
+    E -->|Saves| F[File Utils<br/>utils/file.py]
+    F -->|Uploads| G{S3 or Local?}
+    G -->|S3| H[AWS S3<br/>utils/s3_utils.py]
+    G -->|Local| I[uploads/ Directory]
+    H -->|Returns URL| J[File URL]
+    I -->|Returns Path| J
+    J -->|Creates Record| K[LeadFile Model]
+    K -->|Saved to| L[(Database)]
+    L -->|Returns| M[File Metadata]
+    M -->|Response| A
+
+    style G fill:#fff4e1
+    style H fill:#e1f5ff
+    style L fill:#ffe1f5
+        </div>
+    </div>
+
+    <div class="diagram-container" id="diagram-10">
+        <div class="diagram-title">10. Lead Creation Complete Flow Example</div>
+        <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant FastAPI
+    participant Router
+    participant Auth
+    participant Parser
+    participant DB Router
+    participant Session
+    participant Database
+    participant Listener
+    participant Timeline
+    participant Celery
+    participant Email
+
+    Client->>FastAPI: POST /contact/lead/create<br/>(with files)
+    FastAPI->>Router: route to create_lead()
+    Router->>Auth: verify_token dependency
+    Auth->>Auth: Check token with Auth Service
+    Auth-->>Router: User object
+    Router->>Router: has_permission("lead_create")
+    Router->>Parser: parse_lead_form dependency
+    Parser->>Parser: Parse form data & files
+    Parser-->>Router: lead_data + uploaded_files
+    Router->>DB Router: create_lead_db(lead_data, files, user)
+    DB Router->>Session: Get database session
+    Session->>DB Router: Session object
+    DB Router->>DB Router: Create Lead model instance
+    DB Router->>DB Router: Process & save files (S3/local)
+    DB Router->>DB Router: Create LeadFile records
+    DB Router->>Session: db.add(lead)
+    DB Router->>Session: db.commit()
+    Session->>Database: INSERT INTO leads
+    Database-->>Session: Lead created
+    Database->>Listener: after_insert event triggered
+    Listener->>Timeline: Create timeline entries
+    Timeline->>Database: INSERT INTO lead_timeline
+    Session-->>DB Router: Lead instance
+    DB Router->>DB Router: Format response (schema)
+    DB Router-->>Router: LeadOut schema
+    Router->>Celery: send_notification_email.delay()
+    Router-->>Client: 201 Created + Lead data
+    Celery->>Email: Send email notification
+
+    Note over Listener,Timeline: Automatic event handling
+    Note over Celery,Email: Async background task
+        </div>
+    </div>
+
+    <h2 id="lead-module">📋 Lead Module - Data Flow Diagrams</h2>
+
+    <div class="diagram-container" id="lead-update-detailed">
+        <div class="diagram-title">Lead Module - Level 2: Update Lead Process (Detailed)</div>
+        <div class="mermaid">
+flowchart TD
+    Client[Client]
+    P3_1[3.1<br/>Read Lead<br/>Record]
+    P3_2[3.2<br/>Validate<br/>Updates]
+    P3_3[3.3<br/>Track Field<br/>Changes]
+    P3_4[3.4<br/>Update Lead<br/>Fields]
+    P3_5[3.5<br/>Update Custom<br/>Properties]
+    P3_6[3.6<br/>Log Changes<br/>to Timeline]
+    
+    D1[(D1: Lead Table)]
+    D3[(D3: LeadTimeline Table)]
+    D6[(D6: CustomProperty Table)]
+    D7[(D7: LeadCustomProperty Table)]
+    
+    Client -->|Update Request<br/>+ Lead ID + Data| P3_1
+    P3_1 -->|Read Lead| D1
+    D1 -->|Lead Data| P3_1
+    
+    P3_1 -->|Lead Data| P3_2
+    P3_2 -->|Validate| D1
+    
+    P3_2 -->|Valid Data| P3_3
+    P3_3 -->|Track Changes| P3_3
+    
+    P3_3 -->|Changed Fields| P3_4
+    P3_4 -->|Update Lead| D1
+    D1 -->|Updated Lead| P3_4
+    
+    P3_3 -->|Custom Property Changes| P3_5
+    P3_5 -->|Read Properties| D6
+    D6 -->|Property Definitions| P3_5
+    P3_5 -->|Update Values| D7
+    
+    P3_3 -->|Change Log| P3_6
+    P3_6 -->|Create Timeline Entry| D3
+    
+    P3_4 -->|Updated Lead Response| Client
+    
+    style P3_1 fill:#fff4e1
+    style P3_4 fill:#e1ffe1
+    style D1 fill:#e1f5ff
+        </div>
+    </div>
+
+    <div class="data-dictionary">
+        <h2 style="color: #333; margin-top: 0;">📖 Lead Module - Data Dictionary</h2>
+        
+        <h3 style="color: #667eea;">Data Stores</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Key Attributes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>D1</td>
+                    <td>Lead Table</td>
+                    <td>Main lead records</td>
+                    <td>id, email, first_name, last_name, status_id, lead_owner_id</td>
+                </tr>
+                <tr>
+                    <td>D2</td>
+                    <td>LeadFile Table</td>
+                    <td>Documents attached to leads</td>
+                    <td>id, lead_id, file_type, file_url, verified_status</td>
+                </tr>
+                <tr>
+                    <td>D3</td>
+                    <td>LeadTimeline Table</td>
+                    <td>Activity history for leads</td>
+                    <td>id, lead_id, action_type, message, performed_by</td>
+                </tr>
+                <tr>
+                    <td>D4</td>
+                    <td>LeadStatus Table</td>
+                    <td>Lead status definitions</td>
+                    <td>id, name, parent_id, is_sub_status</td>
+                </tr>
+                <tr>
+                    <td>D5</td>
+                    <td>EducationHistory Table</td>
+                    <td>Education records for leads</td>
+                    <td>id, lead_id, institution, degree, year</td>
+                </tr>
+                <tr>
+                    <td>D6</td>
+                    <td>CustomProperty Table</td>
+                    <td>Custom field definitions</td>
+                    <td>id, name, field_name, data_type</td>
+                </tr>
+                <tr>
+                    <td>D7</td>
+                    <td>LeadCustomProperty Table</td>
+                    <td>Custom property values for leads</td>
+                    <td>id, lead_id, property_id, value</td>
+                </tr>
+                <tr>
+                    <td>D8</td>
+                    <td>CRMUser Table</td>
+                    <td>User information</td>
+                    <td>id, name, email, company_id</td>
+                </tr>
+                <tr>
+                    <td>D9</td>
+                    <td>CRMCompany Table</td>
+                    <td>Company information</td>
+                    <td>id, name</td>
+                </tr>
+                <tr>
+                    <td>D10</td>
+                    <td>Course Table</td>
+                    <td>Course catalog</td>
+                    <td>id, name, institution_id</td>
+                </tr>
+                <tr>
+                    <td>D11</td>
+                    <td>Country Table</td>
+                    <td>Country reference data</td>
+                    <td>id, name, code</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="color: #667eea;">External Entities</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Client</td>
+                    <td>End users accessing the CRM system</td>
+                </tr>
+                <tr>
+                    <td>Auth Service</td>
+                    <td>External authentication and authorization service</td>
+                </tr>
+                <tr>
+                    <td>Email Service</td>
+                    <td>External email sending service</td>
+                </tr>
+                <tr>
+                    <td>S3 Storage</td>
+                    <td>AWS S3 for file storage</td>
+                </tr>
+                <tr>
+                    <td>Celery Worker</td>
+                    <td>Background task processing worker</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="color: #667eea;">Key Data Flows</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Data Flow</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Client</td>
+                    <td>P2</td>
+                    <td>Lead Create Request + Form Data + Files</td>
+                    <td>User submits new lead</td>
+                </tr>
+                <tr>
+                    <td>P2</td>
+                    <td>D1</td>
+                    <td>Create Lead Record</td>
+                    <td>Save new lead to database</td>
+                </tr>
+                <tr>
+                    <td>P2</td>
+                    <td>D2</td>
+                    <td>Save Files</td>
+                    <td>Store file metadata</td>
+                </tr>
+                <tr>
+                    <td>P2</td>
+                    <td>S3Storage</td>
+                    <td>Upload Files</td>
+                    <td>Store actual files in S3</td>
+                </tr>
+                <tr>
+                    <td>P3</td>
+                    <td>D1</td>
+                    <td>Update Lead Record</td>
+                    <td>Modify lead data</td>
+                </tr>
+                <tr>
+                    <td>D1</td>
+                    <td>D3</td>
+                    <td>after_insert Event</td>
+                    <td>Automatic timeline creation</td>
+                </tr>
+                <tr>
+                    <td>P7</td>
+                    <td>D1</td>
+                    <td>Update Status</td>
+                    <td>Change lead status</td>
+                </tr>
+                <tr>
+                    <td>P8</td>
+                    <td>D1</td>
+                    <td>Update Owner</td>
+                    <td>Assign lead to user</td>
+                </tr>
+                <tr>
+                    <td>P4</td>
+                    <td>D1</td>
+                    <td>Search Leads</td>
+                    <td>Query leads with filters</td>
+                </tr>
+                <tr>
+                    <td>P5</td>
+                    <td>D1, D2, D3, D5</td>
+                    <td>Get Lead Details</td>
+                    <td>Retrieve complete lead information</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</htmld-context">
+        <div class="diagram-title">Lead Module - Level 0: Context Diagram</div>
+        <div class="mermaid">
+flowchart TD
+    Client[Client/User] -->|Lead Operations| LeadModule[Lead Module System]
+    AuthService[Auth Service] -->|User Authentication<br/>User Permissions| LeadModule
+    EmailService[Email Service] -->|Send Notifications| LeadModule
+    S3Storage[(S3 Storage)] -->|File Storage| LeadModule
+    
+    LeadModule -->|Lead Data| PostgreSQL[(PostgreSQL Database)]
+    LeadModule -->|Background Tasks| CeleryQueue[Celery Task Queue]
+    
+    LeadModule -->|Lead Response| Client
+    LeadModule -->|Email Notifications| Client
+    
+    style LeadModule fill:#fff4e1
+    style PostgreSQL fill:#e1f5ff
+    style AuthService fill:#ffe1f5
+        </div>
+    </div>
+
+    <div class="diagram-container" id="lead-level1">
+        <div class="diagram-title">Lead Module - Level 1: Complete Data Flow</div>
+        <div class="mermaid">
+flowchart TD
+    %% External Entities
+    Client[Client/User]
+    AuthService[Auth Service]
+    EmailService[Email Service]
+    S3Storage[(S3 Storage)]
+    CeleryWorker[Celery Worker]
+    
+    %% Processes
+    P1[1.0<br/>Authenticate &<br/>Authorize User]
+    P2[2.0<br/>Create Lead]
+    P3[3.0<br/>Update Lead]
+    P4[4.0<br/>List & Search<br/>Leads]
+    P5[5.0<br/>Get Lead<br/>Details]
+    P6[6.0<br/>Delete Lead]
+    P7[7.0<br/>Update Lead<br/>Status]
+    P8[8.0<br/>Update Lead<br/>Owner]
+    P9[9.0<br/>Upload & Manage<br/>Documents]
+    P10[10.0<br/>Verify Documents]
+    P11[11.0<br/>Bulk Create<br/>Leads]
+    P12[12.0<br/>Export Leads]
+    P13[13.0<br/>Manage Education<br/>History]
+    
+    %% Data Stores
+    D1[(D1: Lead)]
+    D2[(D2: LeadFile)]
+    D3[(D3: LeadTimeline)]
+    D4[(D4: LeadStatus)]
+    D5[(D5: Education)]
+    D8[(D8: CRMUser)]
+    
+    %% Client to Processes
+    Client -->|Create Request| P2
+    Client -->|Update Request| P3
+    Client -->|Search Request| P4
+    Client -->|Get Request| P5
+    Client -->|Delete Request| P6
+    Client -->|Status Update| P7
+    Client -->|Owner Update| P8
+    Client -->|File Upload| P9
+    Client -->|Verify Document| P10
+    Client -->|Bulk Create| P11
+    Client -->|Export Request| P12
+    Client -->|Education Data| P13
+    
+    %% Auth Flow
+    Client -->|Token| P1
+    P1 -->|Verify| AuthService
+    AuthService -->|User Info| P1
+    P1 -->|Authorized| P2
+    P1 -->|Authorized| P3
+    P1 -->|Authorized| P4
+    
+    %% Create Lead Flow
+    P2 -->|Validate| D1
+    P2 -->|Create| D1
+    P2 -->|Save Files| D2
+    P2 -->|Upload| S3Storage
+    P2 -->|Timeline| D3
+    P2 -->|Queue Task| CeleryWorker
+    
+    %% Update Lead Flow
+    P3 -->|Read| D1
+    P3 -->|Update| D1
+    P3 -->|Log Changes| D3
+    
+    %% Search Flow
+    P4 -->|Query| D1
+    P4 -->|Get Status| D4
+    P4 -->|Get Users| D8
+    D1 -->|Results| P4
+    P4 -->|Response| Client
+    
+    %% Get Details Flow
+    P5 -->|Read| D1
+    P5 -->|Get Files| D2
+    P5 -->|Get Timeline| D3
+    P5 -->|Get Education| D5
+    
+    %% Delete Flow
+    P6 -->|Delete| D1
+    P6 -->|Delete Files| D2
+    P6 -->|Delete Timeline| D3
+    
+    %% Status Update
+    P7 -->|Read| D1
+    P7 -->|Update Status| D1
+    P7 -->|Log| D3
+    
+    %% Owner Update
+    P8 -->|Read| D1
+    P8 -->|Update Owner| D1
+    P8 -->|Log| D3
+    
+    %% File Management
+    P9 -->|Upload| S3Storage
+    P9 -->|Create Record| D2
+    
+    %% Document Verification
+    P10 -->|Update Status| D2
+    P10 -->|Log| D3
+    
+    %% Bulk Create
+    P11 -->|Parse File| P11
+    P11 -->|Create Multiple| D1
+    
+    %% Export
+    P12 -->|Query| D1
+    P12 -->|Format| P12
+    
+    %% Education
+    P13 -->|Create/Update| D5
+    
+    %% Background Tasks
+    CeleryWorker -->|Send| EmailService
+    EmailService -->|Notification| Client
+    
+    %% Event Listeners
+    D1 -.->|Event| D3
+    
+    %% Responses
+    P2 -->|Response| Client
+    P3 -->|Response| Client
+    P5 -->|Response| Client
+    P6 -->|Response| Client
+    P7 -->|Response| Client
+    P8 -->|Response| Client
+    P9 -->|Response| Client
+    P10 -->|Response| Client
+    P11 -->|Response| Client
+    P12 -->|Export File| Client
+    P13 -->|Response| Client
+    
+    style P1 fill:#ffe1f5
+    style P2 fill:#e1ffe1
+    style P3 fill:#e1ffe1
+    style D1 fill:#e1f5ff
+    style D2 fill:#e1f5ff
+    style D3 fill:#e1f5ff
+        </div>
+    </div>
+
+    <div class="diagram-container" id="lead-create-detailed">
+        <div class="diagram-title">Lead Module - Level 2: Create Lead Process (Detailed)</div>
+        <div class="mermaid">
+flowchart TD
+    Client[Client]
+    P2_1[2.1<br/>Parse & Validate<br/>Lead Form]
+    P2_2[2.2<br/>Check Email<br/>Uniqueness]
+    P2_3[2.3<br/>Process & Upload<br/>Files]
+    P2_4[2.4<br/>Create Lead<br/>Record]
+    P2_5[2.5<br/>Create File<br/>Records]
+    P2_6[2.6<br/>Create Timeline<br/>Entry]
+    P2_7[2.7<br/>Queue Notification]
+    
+    D1[(D1: Lead Table)]
+    D2[(D2: LeadFile Table)]
+    D3[(D3: LeadTimeline Table)]
+    D8[(D8: CRMUser Table)]
+    D9[(D9: CRMCompany Table)]
+    D11[(D11: Country Table)]
+    S3Storage[(S3 Storage)]
+    CeleryQueue[Celery Queue]
+    
+    Client -->|Lead Form + Files| P2_1
+    P2_1 -->|Validated Data| P2_2
+    P2_2 -->|Check Email| D1
+    D1 -->|Email Status| P2_2
+    
+    P2_2 -->|Email Available| P2_3
+    P2_3 -->|Upload Files| S3Storage
+    S3Storage -->|File URLs| P2_3
+    P2_3 -->|File Data| P2_4
+    
+    P2_4 -->|Get User Info| D8
+    D8 -->|User Data| P2_4
+    P2_4 -->|Get Company Info| D9
+    D9 -->|Company Data| P2_4
+    P2_4 -->|Get Country Info| D11
+    D11 -->|Country Data| P2_4
+    P2_4 -->|Create Lead| D1
+    D1 -->|New Lead ID| P2_4
+    
+    P2_4 -->|Lead ID| P2_5
+    P2_5 -->|Create File Records| D2
+    
+    P2_4 -->|Lead ID| P2_6
+    P2_6 -->|Create Timeline| D3
+    
+    P2_4 -->|Lead Data| P2_7
+    P2_7 -->|Queue Task| CeleryQueue
+    
+    P2_4 -->|Lead Created| Client
+    
+    style P2_1 fill:#fff4e1
+    style P2_4 fill:#e1ffe1
+    style D1 fill:#e1f5ff
+        </div>
+    </div>
+
+    <div class="diagram-container" id="lea
